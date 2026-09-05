@@ -326,7 +326,7 @@
     <div class="card result-card" id="resultCard">
       <h2 class="section-title">Latest Calculation</h2>
       <div id="resultBody">
-        <div class="result-empty">No calculation yet. Add history below, then tap <b style="color:var(--gold)">Calculate Next</b>.</div>
+        <div class="result-empty">No calculation yet. Add history below, then tap <b style="color:var(--gold)">Calculate Next</b></div>
       </div>
     </div>
 
@@ -442,8 +442,8 @@
     while(last3.length < 3) last3.unshift(0);
     const numDigit = ((Number(numberVal) % 10) + 10) % 10;
 
-    const sum1 = last3.reduce((a,b)=>a+b,0) + numDigit;
-    const total = sum1 + numDigit;
+    // Sum the last 3 period digits with the result digit ONCE (no repeat add)
+    const total = last3.reduce((a,b)=>a+b,0) + numDigit;
 
     const reduceSteps = [];
     let cur = total;
@@ -459,7 +459,7 @@
 
     return {
       period: cleanPeriod, numberVal: numDigit,
-      last3, numDigit, sum1, total, reduceSteps, finalDigit, bigSmall, colours
+      last3, numDigit, total, reduceSteps, finalDigit, bigSmall, colours
     };
   }
 
@@ -498,13 +498,12 @@
         <div class="pred-badge ${r.bigSmall.toLowerCase()}">${r.bigSmall === 'BIG' ? '🟠' : '🔵'} ${r.bigSmall}</div>
         <div class="colour-badge">${dotsHtml(r.colours)} ${colourLabel(r.colours)}</div>
       </div>
-      <details class="steps" open>
+      <details class="steps">
         <summary>Show step-by-step working</summary>
         <div class="step-list">
           Last 3 digits of period → <b>${r.last3.join(' + ')}</b><br>
           Result-number digit → <b>${r.numDigit}</b><br>
-          Sum: ${r.last3.join(' + ')} + ${r.numDigit} = <b>${r.sum1}</b><br>
-          Add latest result again: ${r.sum1} + ${r.numDigit} = <b>${r.total}</b><br>
+          Sum: ${r.last3.join(' + ')} + ${r.numDigit} = <b>${r.total}</b><br>
           ${r.reduceSteps.map(s=>`Reduce: ${s.parts.join(' + ')} = <b>${s.to}</b>`).join('<br>')}
           ${r.reduceSteps.length ? '<br>' : ''}
           Final digit → <span class="final">${r.finalDigit}</span> → <span class="final">${r.bigSmall}</span> / <span class="final">${colourLabel(r.colours)}</span>
@@ -592,7 +591,6 @@
     const latest = history[0];
     lastResult = computeEntry(latest.period, latest.number);
     renderResult(lastResult);
-    document.getElementById('resultCard').scrollIntoView({behavior:'smooth', block:'start'});
   });
 
   document.getElementById('resetBtn').addEventListener('click', ()=>{
@@ -600,7 +598,7 @@
     document.getElementById('manualPeriod').value = '';
     document.getElementById('manualNumber').value = '';
     lastResult = null;
-    resultBody.innerHTML = '<div class="result-empty">No calculation yet. Add history below, then tap <b style="color:var(--gold)">Calculate Next</b>.</div>';
+    resultBody.innerHTML = '<div class="result-empty">No calculation yet. Add history below, then tap <b style="color:var(--gold)">Calculate Next</b></div>';
   });
 
   document.getElementById('clearHistBtn').addEventListener('click', ()=>{
@@ -614,20 +612,4 @@
   document.getElementById('copyBtn').addEventListener('click', async ()=>{
     if(!lastResult){ alert('Calculate a result first.'); return; }
     const r = lastResult;
-    const text = `Period: ${r.period}\nFinal Digit: ${r.finalDigit}\nPrediction: ${r.bigSmall}\nColour: ${colourLabel(r.colours)}\n(Calculation-based guess — not a guaranteed outcome)`;
-    try{
-      await navigator.clipboard.writeText(text);
-      const btn = document.getElementById('copyBtn');
-      const original = btn.textContent;
-      btn.textContent = 'Copied!';
-      setTimeout(()=>{ btn.textContent = original; }, 1400);
-    }catch(e){
-      alert(text);
-    }
-  });
-
-  loadStorage();
-})();
-</script>
-</body>
-</html>
+    const text = `Period: ${r.period}\nFinal Digit: ${r
